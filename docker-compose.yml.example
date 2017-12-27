@@ -1,8 +1,8 @@
-version: '3'
+version: '2'
 services:
   plex:
     image: plexinc/pms-docker:plexpass
-    restart: unless-stopped
+    restart: always
     hostname: plex
     ports:
       - "32400:32400/tcp"
@@ -25,7 +25,7 @@ services:
       - ./data:/data
   sonarr:
     image: twanislas/sonarr
-    restart: unless-stopped
+    restart: always
     hostname: sonarr
     ports:
       - "8989:8989/tcp"
@@ -38,7 +38,7 @@ services:
       - ./data:/data
   jackett:
     image: twanislas/jackett
-    restart: unless-stopped
+    restart: always
     hostname: jackett
     ports:
       - "9117:9117/tcp"
@@ -52,11 +52,13 @@ services:
       - ./data/Downloads:/data
   qbittorrent:
     image: twanislas/qbittorrent
-    restart: unless-stopped
+    restart: always
     hostname: qbittorrent
     ports:
       - "8080:8080/tcp"
       - "53160:53160"
+    expose:
+      - "8080"
     environment:
       - QBITTORRENT_UID=2000
       - QBITTORRENT_GID=2000
