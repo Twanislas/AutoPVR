@@ -36,6 +36,18 @@ services:
     volumes:
       - ./config/sonarr:/config
       - ./data:/data
+  radarr:
+    image: twanislas/radarr
+    restart: always
+    hostname: radarr
+    ports:
+      - "7878:7878/tcp"
+    environment:
+      - RADARR_UID=2000
+      - RADARR_GID=2000
+    volumes:
+      - ./config/radarr:/config
+      - ./data:/data
   jackett:
     image: twanislas/jackett
     restart: always
