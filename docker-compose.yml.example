@@ -77,17 +77,18 @@ services:
     volumes:
       - ./config/qbittorrent:/config
       - ./data/Downloads:/data
-  plexpy:
-    image: twanislas/plexpy
-    restart: always
-    hostname: plexpy
-    ports:
-      - "8181:8181/tcp"
-    expose:
-      - "8181"
-    environment:
-      - PLEXPY_UID=2000
-      - PLEXPY_GID=2000
-    volumes:
-      - ./config/plexpy:/config
-      - ./config/plex/Library/Application\ Support/Plex\ Media\ Server/Logs:/logs:ro
+  tautulli:
+      image: tautulli/tautulli
+      restart: always
+      hostname: tautulli
+      ports:
+        - "8181:8181/tcp"
+      expose:
+        - "8181"
+      environment:
+        - TZ=Europe/Brussels
+        - PGID=2000
+        - PUID=2000
+      volumes:
+        - ./config/plexpy:/config
+        - "./config/plex/Library/Application Support/Plex Media Server/Logs:/plex_logs:ro"
