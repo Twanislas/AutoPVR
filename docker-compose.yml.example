@@ -92,3 +92,11 @@ services:
       volumes:
         - ./config/plexpy:/config
         - "./config/plex/Library/Application Support/Plex Media Server/Logs:/plex_logs:ro"
+  nginx:
+    image: nginx:stable-alpine
+    restart: always
+    ports:
+      - 443/tcp
+    volumes:
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./config/certbot:/etc/letsencrypt:ro
