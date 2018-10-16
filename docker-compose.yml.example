@@ -27,9 +27,8 @@ services:
     image: twanislas/sonarr
     restart: always
     hostname: sonarr
-    ports:
-      - "8989:8989/tcp"
-      - "9898:9898/tcp"
+    expose:
+      - 8989
     environment:
       - SONARR_UID=2000
       - SONARR_GID=2000
@@ -40,8 +39,8 @@ services:
     image: twanislas/radarr
     restart: always
     hostname: radarr
-    ports:
-      - "7878:7878/tcp"
+    expose:
+      - 7878
     environment:
       - RADARR_UID=2000
       - RADARR_GID=2000
@@ -52,8 +51,6 @@ services:
     image: twanislas/jackett
     restart: always
     hostname: jackett
-    ports:
-      - "9117:9117/tcp"
     expose:
       - "9117"
     environment:
@@ -67,7 +64,6 @@ services:
     restart: always
     hostname: qbittorrent
     ports:
-      - "8080:8080/tcp"
       - "53160:53160"
     expose:
       - "8080"
@@ -81,8 +77,6 @@ services:
       image: tautulli/tautulli
       restart: always
       hostname: tautulli
-      ports:
-        - "8181:8181/tcp"
       expose:
         - "8181"
       environment:
