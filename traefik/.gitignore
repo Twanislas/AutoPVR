@@ -1,5 +1,6 @@
 # Ignore everything in this directory
 *
-# Except these
+# Except this
 !.gitignore
-!ovh-credentials.ini.example
+!acme.env.example
+!hook.sh

@@ -1,0 +1,245 @@
+version: '2'
+
+services:
+
+  bazarr:
+    image: ghcr.io/linuxserver/bazarr
+    container_name: autopvr_bazarr
+    restart: unless-stopped
+    depends_on:
+      - traefik
+    expose:
+      - 6767
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - ${CONFIGPATH}/bazarr:/config
+      - ${DATAPATH}:/data
+    labels:
+      - "autopvr.traefik.enable=true"
+      - "traefik.http.routers.bazarr.rule=Host(`${DOMAIN}`) && PathPrefix(`/bazarr/`)"
+
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr
+    container_name: autopvr_flaresolverr
+    restart: unless-stopped
+    expose:
+      - 8191
+    environment:
+      - TZ=${TZ}
+      - CAPTCHA_SOLVER=hcaptcha-solver
+
+  jackett:
+    image: ghcr.io/linuxserver/jackett
+    container_name: autopvr_jackett
+    restart: unless-stopped
+    depends_on:
+      - traefik
+    expose:
+      - 9117
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - ${CONFIGPATH}/jackett:/config
+    labels:
+      - "autopvr.traefik.enable=true"
+      - "traefik.http.routers.jackett.rule=Host(`${DOMAIN}`) && PathPrefix(`/jackett/`)"
+
+  ombi:
+    image: ghcr.io/linuxserver/ombi:development
+    container_name: autopvr_ombi
+    restart: unless-stopped
+    depends_on:
+      - radarr
+      - sonarr
+    expose:
+      - 3579
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - BASE_URL=/ombi
+    volumes:
+      - ${CONFIGPATH}/ombi:/config
+    labels:
+      - "autopvr.traefik.enable=true"
+      - "traefik.http.routers.ombi.rule=Host(`${DOMAIN}`) && PathPrefix(`/ombi/`)"
+
+  organizr:
+    image: organizr/organizr
+    container_name: autopvr_organizr
+    restart: unless-stopped
+    depends_on:
+      - traefik
+    expose:
+      - 80
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - ${CONFIGPATH}/organizr:/config
+    labels:
+      - "autopvr.traefik.enable=true"
+      - "traefik.http.routers.organizr.rule=Host(`${DOMAIN}`)"
+
+  plex:
+    image: plexinc/pms-docker:plexpass
+    container_name: autopvr_plex
+    restart: unless-stopped
+    expose:
+      - "1900/udp"
+      - "3005/tcp"
+      - "5353/udp"
+      - "8324/tcp"
+      - "32400/tcp"
+      - "32410/udp"
+      - "32412/udp"
+      - "32413/udp"
+      - "32414/udp"
+      - "32469/tcp"
+    ports:
+      - "32400:32400/tcp"
+    environment:
+      - TZ=${TZ}
+      - ADVERTISE_IP=https://${DOMAIN}:32400
+      - PLEX_UID=${PUID}
+      - PLEX_GID=${PGID}
+    volumes:
+      - ${CONFIGPATH}/plex:/config
+      - ${CONFIGPATH}/traefik/certs:/certs
+      - ${TMPPATH}:/transcode
+      - ${DATAPATH}:/data
+    devices:
+      - /dev/dri:/dev/dri
+
+  qbittorrent:
+    image: ghcr.io/linuxserver/qbittorrent:latest
+    container_name: autopvr_qbittorrent
+    restart: unless-stopped
+    depends_on:
+      - traefik
+    ports:
+      - "${QBITTORRENT_PUBLIC_PORT}:6881/tcp"
+      - "${QBITTORRENT_PUBLIC_PORT}:6881/udp"
+    expose:
+      - 8080
+    environment:
+      - TZ=${TZ}
+      - PGID=${PGID}
+      - PUID=${PUID}
+      - UMASK=022
+    volumes:
+      - ${CONFIGPATH}/qbittorrent:/config
+      - ${DATAPATH}/Downloads:/data
+    labels:
+      - "autopvr.traefik.enable=true"
+      - "traefik.http.services.qbittorrent.loadbalancer.server.port=8080"
+      - "traefik.http.routers.qbittorrent.rule=Host(`${DOMAIN}`) && PathPrefix(`/qbittorrent/`)"
+      - "traefik.http.routers.qbittorrent.middlewares=qbittorrent-strip"
+      - "traefik.http.middlewares.qbittorrent-strip.stripPrefix.prefixes=/qbittorrent/"
+
+  radarr:
+    image: ghcr.io/linuxserver/radarr
+    container_name: autopvr_radarr
+    restart: unless-stopped
+    depends_on:
+      - traefik
+      - jackett
+    expose:
+      - 7878
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - ${CONFIGPATH}/radarr:/config
+      - ${DATAPATH}:/data
+    labels:
+      - "autopvr.traefik.enable=true"
+      - "traefik.http.routers.radarr.rule=Host(`${DOMAIN}`) && PathPrefix(`/radarr/`)"
+
+  sonarr:
+    image: ghcr.io/linuxserver/sonarr
+    container_name: autopvr_sonarr
+    restart: unless-stopped
+    depends_on:
+      - traefik
+      - jackett
+    expose:
+      - 8989
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - ${CONFIGPATH}/sonarr:/config
+      - ${DATAPATH}:/data
+    labels:
+      - "autopvr.traefik.enable=true"
+      - "traefik.http.routers.sonarr.rule=Host(`${DOMAIN}`) && PathPrefix(`/sonarr/`)"
+
+  tautulli:
+    image: tautulli/tautulli
+    container_name: autopvr_tautulli
+    restart: unless-stopped
+    depends_on:
+      - traefik
+    expose:
+      - 8181
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - ${CONFIGPATH}/tautulli:/config
+      - ${CONFIGPATH}/plex/Library/Application Support/Plex Media Server/Logs:/plex_logs:ro
+    labels:
+      - "autopvr.traefik.enable=true"
+      - "traefik.http.routers.tautulli.rule=Host(`${DOMAIN}`) && PathPrefix(`/tautulli/`)"
+
+  traefik:
+    image: traefik:latest
+    container_name: autopvr_traefik
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PUBLIC_PORT}:80/tcp"
+      - "${HTTPS_PUBLIC_PORT}:443/tcp"
+    env_file:
+      - ${CONFIGPATH}/traefik/acme.env
+    environment:
+      - TZ=${TZ}
+    command:
+      - "--providers.docker.constraints=Label(`autopvr.traefik.enable`,`true`)"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.websecure.http.tls.certResolver=le"
+      - "--entrypoints.websecure.http.tls.domains[0].main=${DOMAIN}"
+      - "--certificatesresolvers.le.acme.email=$ACME_EMAIL"
+      - "--certificatesresolvers.le.acme.storage=/config/acme.json"
+      - "--certificatesresolvers.le.acme.dnschallenge.provider=$ACME_PROVIDER"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - ${CONFIGPATH}/traefik/acme.json:/config/acme.json
+
+  traefik-certs-dumper:
+    image: ldez/traefik-certs-dumper
+    container_name: autopvr_traefik-certs-dumper
+    restart: unless-stopped
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        apk add jq openssl
+        while ! [ -e /data/acme.json ] || ! [ `jq ".[] | .Certificates | length" /data/acme.json` != 0 ]; do
+          sleep 1
+        done
+        chmod -R +r /data/certs
+        exec /usr/bin/traefik-certs-dumper file --domain-subdir --version v2 --watch --source /data/acme.json --dest /data/certs --post-hook "/data/hook.sh"
+    volumes:
+      - ${CONFIGPATH}/traefik:/data

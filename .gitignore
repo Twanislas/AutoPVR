@@ -1,2 +1,2 @@
-# Ignore customized config
-docker-compose.yml
+# Ignore this
+.env

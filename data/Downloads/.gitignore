@@ -1,7 +1,0 @@
-# Ignore everything in this directory
-*
-# Except the defaults
-!.gitignore
-!.tmp
-!Radarr
-!Sonarr
